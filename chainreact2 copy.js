@@ -60,11 +60,11 @@ class Bucket extends Phaser.GameObjects.Graphics {
         const radius = BUCKET_SIZE * (this.fullness * 0.16);
         this.clear();
         // Create and add text object
-        // const text = this.scene.add
-        //     .text(x, y, this.id, { color: '#000000', fontSize: '10px' })
-        //     .setDepth(1);
+        const text = this.scene.add
+            .text(x, y, this.id, { color: '#000000', fontSize: '10px' })
+            .setDepth(1);
         //const text = this.scene.add.text(x*2, y*2, this.parentContainer.x + ','+ this.parentContainer.y, { color: '#000000', fontSize: '16px' });
-        // text.setOrigin(0.5, 0.5);
+        text.setOrigin(0.5, 0.5);
         this.fillStyle(this.color);
         this.fillCircle(0, 0, radius);
         this.strokeCircle(0, 0, BUCKET_SIZE / 2);
@@ -99,6 +99,8 @@ class Bucket extends Phaser.GameObjects.Graphics {
     }
 }
 
+
+
 function createBuckets(scene) {
     const buckets = [];
     for (let i = 0; i < 8; i++) {
@@ -130,6 +132,8 @@ function create() {
 // stupid timer, just for testing make it run slow
 let updcount = 0
 function update() {
+    const floatedOver = document.getElementById('waves');
+    floatedOver.innerHTML = `Waves Active ${waves.length}`;
     const crashed = document.getElementById('crashed');
     crashed.innerHTML = `Crashed ${crashes}`;
     if (true || ++updcount > 10) {
@@ -145,13 +149,17 @@ function update() {
                 }
             }
         }
-        //  process all waves
+        //  place the waves
         for (let nbr = 0; nbr < waves.length; nbr++) {
-            let [line, direction, volume, pos] = waves[nbr]
-            pos += direction
-            // At a position divisible by 12, check on the Bucket here
-            if (pos % 12 == 0) {
-                // At pos 12, check if anything special happens here, if any fullness, stop wave and add it's fullness
+            let wave = waves[nbr]
+            line = wave[0]
+            direction = wave[1]
+            volume = wave[2]
+            pos = wave[3]
+            //console.log(line + " " + direction + " " + volume + " " + pos)
+            pos = pos + direction
+            if (pos % 12 == 0 && pos !=96) {
+                // Bucket, setting down wave into bucket
                 if (line < 8) {
                     i = line
                     j = pos / 12
@@ -161,24 +169,33 @@ function update() {
                 }
                 //console.log(`Wave >>> Bucket (${i},${j})`)
                 let bucket = gameBoard[i][j]
-                if (bucket.fullness != 0) {
+                if (bucket.fullness == 0) {
+                    // no nothing, it's empty here except possible waves, so keep going
+                } else {
+                    //console.log(bucket)
                     if (bucket) {bucket.incrementFullness()} else {console.log("incrementFullness failed")}
                     waves.splice(nbr, 1);
                     nbr--
                 }
-                const waveInfo = document.getElementById('waveInfo');
-                waveInfo.innerHTML = `Waves Active ${waves.length}`;
             }
-            if (pos < 0 || pos > (7*12) ) {
+            if (pos >= 96 || pos < 0) {
                 // Wave has left the board
                 crashes++
                 waves.splice(nbr, 1)
             }
+
+
+            //update changees
+            wave[3] = pos
         }
 
         // Process all the waves
         for (let i = 0; i < waves.length; i++) {
-            let [line, direction, volume, pos] = waves[i]
+            let wave = waves[i];
+            let line = wave[0];
+            let direction = wave[1];
+            let volume = wave[2];
+            let pos = wave[3];
             let x, y
             if (line < 8) {
                 x = (-5) + (line * BUCKET_SIZE) + 30;
